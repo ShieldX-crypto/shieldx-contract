@@ -1,5 +1,9 @@
 #![no_std]
 
+use crate::dto::ProtocolConfig;
+
+klever_sc::imports!();
+
 mod constants;
 #[path = "data/data.rs"]
 mod data;
@@ -26,10 +30,24 @@ pub trait Shieldx:
     + debug::ShieldxDebug
 {
     #[init]
-    fn init(&self) {
+    fn init(
+        &self,
+        oracle_pubkey: ManagedByteArray<Self::Api, 32>,
+        protocol_fee_bps: u32,
+        max_payout_bps_of_pool: u32,
+    ) {
         self.pool_balance().set_if_empty(BigUint::zero());
         self.protocol_balance().set_if_empty(BigUint::zero());
         self.locked_liquidity().set_if_empty(BigUint::zero());
+
+        let config = ProtocolConfig {
+            oracle_pubkey,
+            protocol_fee_bps,
+            max_payout_bps_of_pool,
+        };
+
+        self.config().set_if_empty(config);
+        self.next_policy_id().set_if_empty(1u64);
     }
 
     #[upgrade]
