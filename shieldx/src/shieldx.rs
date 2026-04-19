@@ -15,7 +15,6 @@ mod storage;
 mod storage_setters;
 mod utils;
 
-/// An empty contract. To be used as a template when starting a new contract from scratch.
 #[klever_sc::contract]
 pub trait Shieldx:
     storage::Storage
