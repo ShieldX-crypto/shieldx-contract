@@ -1,0 +1,12 @@
+[package]
+name = "shieldx-meta"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[dependencies.shieldx]
+path = ".."
+
+[dependencies.klever-sc-meta]
+version = "0.45.0"
+default-features = false

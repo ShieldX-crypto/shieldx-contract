@@ -1,0 +1,43 @@
+{
+  "name": "ShieldX - get_quote_hash matches oracle serialization",
+  "comment": "Check hash of QuotePayload",
+  "steps": [
+    {
+      "step": "setState",
+      "accounts": {
+        "sc:shieldx": {
+          "nonce": "0",
+          "balance": "0",
+          "code": "file:../output/shieldx.wasm",
+          "storage": {}
+        }
+      }
+    },
+    {
+      "step": "scQuery",
+      "txId": "quote_hash_query_1",
+      "tx": {
+        "to": "sc:shieldx",
+        "function": "quoteHash",
+        "arguments": [
+          {
+            "0-validator": "address:my_address",
+            "1-covered_event": "u8:0",
+            "2-duration_epochs": "u64:60",
+            "3-payout": "biguint:5000",
+            "4-premium": "biguint:120",
+            "5-expiry": "u64:1000",
+            "6-nonce": "u64:7",
+            "7-risk_model_version": "nested:str:0.0.1"
+          }
+        ]
+      },
+      "expect": {
+        "status": "0",
+        "out": [
+          "0xc7944c0a41e5d9185a2095a68406c39fa68614ddadb709e5c8f2daab69a723a3"
+        ]
+      }
+    }
+  ]
+}
