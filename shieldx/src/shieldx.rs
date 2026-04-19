@@ -1,5 +1,7 @@
 #![no_std]
 
+use klever_sc::types::{BigInt, BigUint};
+
 mod constants;
 #[path = "data/data.rs"]
 mod data;
@@ -27,7 +29,11 @@ pub trait Shieldx:
     + debug::ShieldxDebug
 {
     #[init]
-    fn init(&self) {}
+    fn init(&self) {
+        self.pool_balance().set_if_empty(BigUint::zero());
+        self.protocol_balance().set_if_empty(BigUint::zero());
+        self.locked_liquidity().set_if_empty(BigUint::zero());
+    }
 
     #[upgrade]
     fn upgrade(&self) {}

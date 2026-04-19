@@ -12,6 +12,7 @@ pub enum CoveredEvent {
 pub enum PolicyStatus {
     Active,
     Claimed,
+    Expired
 }
 
 #[type_abi]
@@ -33,7 +34,8 @@ pub struct Policy<M: ManagedTypeApi> {
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug)]
-pub struct ValidatorEvent {
-    event: CoveredEvent,
-    epoch: u64,
+pub struct ValidatorEvent<M: ManagedTypeApi> {
+    pub event: CoveredEvent,
+    pub validator: ManagedAddress<M>,
+    pub epoch: u64,
 }
