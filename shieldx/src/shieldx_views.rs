@@ -1,6 +1,6 @@
 klever_sc::imports!();
 
-use crate::{constants::ERR_DOES_NOT_EXIST, data::Policy, storage, utils};
+use crate::{constants::ERR_DOES_NOT_EXIST, data::Policy, dto::ProtocolState, storage, utils};
 
 #[klever_sc::module]
 pub trait ShieldxViews: storage::Storage + utils::ShieldXUtils {
@@ -12,7 +12,10 @@ pub trait ShieldxViews: storage::Storage + utils::ShieldXUtils {
     }
 
     #[view(getPoliciesBatch)]
-    fn get_policies_batch(&self, policy_ids: &ManagedVec<Self::Api, u64>) -> ManagedVec<Self::Api, Policy<Self::Api>> {
+    fn get_policies_batch(
+        &self,
+        policy_ids: &ManagedVec<Self::Api, u64>,
+    ) -> ManagedVec<Self::Api, Policy<Self::Api>> {
         let mut result = ManagedVec::<Self::Api, Policy<Self::Api>>::new();
 
         for id in policy_ids {
@@ -26,11 +29,23 @@ pub trait ShieldxViews: storage::Storage + utils::ShieldXUtils {
     }
 
     #[view(getOwnedPoliciesPaged)]
-    fn get_owned_policies_paged(&self, page: usize, page_size: usize) -> ManagedVec<Self::Api, Policy<Self::Api>> {
+    fn get_owned_policies_paged(
+        &self,
+        page: usize,
+        page_size: usize,
+    ) -> ManagedVec<Self::Api, Policy<Self::Api>> {
         let owner = self.blockchain().get_caller();
         let owned_policies = self.owned_policies(&owner);
         let ids = self.paginate(owned_policies, page, page_size);
 
         return self.get_policies_batch(&ids);
+    }
+
+    #[view(getProtocolState)]
+    fn get_protocol_state(&self) -> ProtocolState<Self::Api> {
+        ProtocolState {
+            total_liquidity: self.pool_balance().get(),
+            locked_liquidity: self.locked_liquidity().get(),
+        }
     }
 }

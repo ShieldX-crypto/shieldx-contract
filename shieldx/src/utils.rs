@@ -1,4 +1,7 @@
-use crate::{constants::{SHA_256_HASH_LENTH_BYTES, BPS_FACTOR}, dto::QuotePayload};
+use crate::{
+    constants::{BPS_FACTOR, SHA_256_HASH_LENTH_BYTES},
+    dto::QuotePayload,
+};
 
 klever_sc::imports!();
 klever_sc::derive_imports!();

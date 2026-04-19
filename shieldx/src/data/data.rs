@@ -2,21 +2,27 @@ use klever_sc::derive_imports::*;
 use klever_sc::imports::*;
 
 #[type_abi]
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug, ManagedVecItem)]
+#[derive(
+    NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug, ManagedVecItem,
+)]
 pub enum CoveredEvent {
     Jailed,
 }
 
 #[type_abi]
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug, ManagedVecItem)]
+#[derive(
+    NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug, ManagedVecItem,
+)]
 pub enum PolicyStatus {
     Active,
     Claimed,
-    Expired
+    Expired,
 }
 
 #[type_abi]
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug, ManagedVecItem)]
+#[derive(
+    NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug, ManagedVecItem,
+)]
 pub struct Policy<M: ManagedTypeApi> {
     pub id: u64,
     pub owner_address: ManagedAddress<M>,

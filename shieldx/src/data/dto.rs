@@ -24,3 +24,10 @@ pub struct ProtocolConfig<M: ManagedTypeApi> {
     pub protocol_fee_bps: u32,
     pub max_payout_bps_of_pool: u32,
 }
+
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug)]
+pub struct ProtocolState<M: ManagedTypeApi> {
+    pub total_liquidity: BigUint<M>,
+    pub locked_liquidity: BigUint<M>,
+}

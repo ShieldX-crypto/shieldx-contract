@@ -17,7 +17,7 @@ pub trait ShieldxEvents {
         &self,
         #[indexed] oracle: ManagedAddress<Self::Api>,
         #[indexed] validator: ManagedAddress<Self::Api>,
-        event: &ValidatorEvent<Self::Api>
+        event: &ValidatorEvent<Self::Api>,
     );
 
     #[event("payoutGranted")]
@@ -26,7 +26,7 @@ pub trait ShieldxEvents {
         #[indexed] owner: ManagedAddress<Self::Api>,
         #[indexed] validator: ManagedAddress<Self::Api>,
         #[indexed] epoch: u64,
-        amount: BigUint<Self::Api>
+        amount: BigUint<Self::Api>,
     );
 
     #[event("policyExpired")]
@@ -34,6 +34,6 @@ pub trait ShieldxEvents {
         &self,
         #[indexed] validator: ManagedAddress<Self::Api>,
         #[indexed] epoch: u64,
-        policy: &Policy<Self::Api>
+        policy: &Policy<Self::Api>,
     );
 }

@@ -195,7 +195,10 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
             if policy.status != PolicyStatus::Active {
                 continue;
             }
-            require!(policy.end_epoch < self.blockchain().get_block_epoch(), "Policy is not expired yet");
+            require!(
+                policy.end_epoch < self.blockchain().get_block_epoch(),
+                "Policy is not expired yet"
+            );
             policy.status = PolicyStatus::Expired;
             self.policies(policy_id).set(policy.clone());
             let payout = policy.payout.clone();
