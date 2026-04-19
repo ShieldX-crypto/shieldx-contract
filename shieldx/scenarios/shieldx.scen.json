@@ -23,8 +23,12 @@
             "tx": {
                 "from": "address:owner",
                 "contractCode": "kleversc:../output/shieldx.kleversc.json",
-                "arguments": [],
-                "gasLimit": "5,000,000",
+                "arguments": [
+                    "0xe2c7f674d618c0aae51cc9fe0a86efa42eca3d597e487a4a11395c30db73db10",
+                    "u16:1000",
+                    "u16:5000"
+                ],
+                "gasLimit": "80,000,000",
                 "gasPrice": "0"
             },
             "expect": {
