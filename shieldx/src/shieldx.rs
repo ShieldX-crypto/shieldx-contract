@@ -1,7 +1,5 @@
 #![no_std]
 
-use klever_sc::types::{BigInt, BigUint};
-
 mod constants;
 #[path = "data/data.rs"]
 mod data;
