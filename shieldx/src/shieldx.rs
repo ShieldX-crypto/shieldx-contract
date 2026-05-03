@@ -35,6 +35,7 @@ pub trait Shieldx:
         oracle_pubkey: ManagedByteArray<Self::Api, 32>,
         protocol_fee_bps: u32,
         max_payout_bps_of_pool: u32,
+        max_locked_per_subject_bps: u32
     ) {
         self.pool_balance().set_if_empty(BigUint::zero());
         self.protocol_balance().set_if_empty(BigUint::zero());
@@ -44,6 +45,7 @@ pub trait Shieldx:
             oracle_pubkey,
             protocol_fee_bps,
             max_payout_bps_of_pool,
+            max_locked_per_subject_bps
         };
 
         self.config().set_if_empty(config);

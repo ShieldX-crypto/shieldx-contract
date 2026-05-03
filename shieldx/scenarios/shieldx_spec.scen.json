@@ -52,9 +52,11 @@
                 "from": "address:owner",
                 "contractCode": "kleversc:../output/shieldx.kleversc.json",
                 "arguments": [
-                    "0xe2c7f674d618c0aae51cc9fe0a86efa42eca3d597e487a4a11395c30db73db10",
-                    "u16:1000",
-                    "u16:5000"
+                    "0x2a46395cd1132a820c72844f1432de5f9229245768c878fb95c820e176b072fb",
+                    "u32:1000",
+                    "u32:5000",
+                    "u32:10000"
+
                 ],
                 "gasLimit": "80,000,000",
                 "gasPrice": "0"
@@ -112,7 +114,7 @@
                 "function": "quoteHash",
                 "arguments": [
                     {
-                        "0-validator": "address:my_validator",
+                        "0-validator": "nested:str:my_validator",
                         "1-covered_event": "u8:0",
                         "2-duration_epochs": "u64:60",
                         "3-payout": "biguint:5000",
@@ -126,7 +128,7 @@
             "expect": {
                 "status": "0",
                 "out": [
-                    "0x7c163b9373c48f459fbb90cbd7b50ab1f3b60ca3e4ecd07a6d77fc3c497a9292"
+                    "0xd3a41264c43325a2f9cd5676316c75018490788d1d51027711633088926bf038"
                 ]
             }
         },
@@ -141,7 +143,7 @@
                 "function": "buyPolicy",
                 "arguments": [
                     {
-                        "0-validator": "address:my_validator",
+                        "0-subject_key": "nested:str:my_validator",
                         "1-covered_event": "u8:0",
                         "2-duration_epochs": "u64:60",
                         "3-payout": "biguint:5000",
@@ -150,7 +152,7 @@
                         "6-nonce": "u64:7",
                         "7-risk_model_version": "nested:str:0.0.1"
                     },
-                    "0xbe87e298dd2a42ea6c5de357e3245dbfdde8527b61f6960dbdec91777d78f10fdbfea5b6dbcbce6159c1dda6c026bc72190b56d5c03634acc63dac531f38eb05"
+                    "0x3b064e4cbd81958a0462465bb1c0ed639b65b52ad28ceceddd6191acb04f287ae67093a869b6fe2b346651ee08ce8d5680dcd8cd887155b69d4911844f190604"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -170,7 +172,7 @@
                 "function": "buyPolicy",
                 "arguments": [
                     {
-                        "0-validator": "address:my_validator",
+                        "0-validator": "nested:str:my_validator",
                         "1-covered_event": "u8:0",
                         "2-duration_epochs": "u64:10",
                         "3-payout": "biguint:2000",
@@ -179,7 +181,7 @@
                         "6-nonce": "u64:8",
                         "7-risk_model_version": "nested:str:0.0.1"
                     },
-                    "0x2817265b0762e68be8505a824319b126ef74c444a4ea51532fc4d0cb70aee320c2ca2bf4a1051b7f620b258a1ccb2bc9bfb72bc678dc95b6a34cc78c2a695d07"
+                    "0x8994dd9025a15cbb348d8915888165f37a46e89a03caf453531394495c7bf219eb4064cdb05a16dfa0b5a3afdf6f63ba17e1f487f90cb0684efe3b2dc1983007"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -200,17 +202,17 @@
         },
         {
             "step": "scCall",
-            "txId": "register_validator_event",
+            "txId": "register_oracle_event",
             "comment": "Oracle reports validator jailed at epoch 80",
             "tx": {
                 "from": "address:oracle",
                 "to": "sc:shieldx",
                 "value": "0",
-                "function": "registerValidatorEvent",
+                "function": "registerOracleEvent",
                 "arguments": [
                     {
                         "0-event": "u8:0",
-                        "1-validator": "address:my_validator",
+                        "1-validator": "nested:str:my_validator",
                         "2-epoch": "u64:80"
                     }
                 ],

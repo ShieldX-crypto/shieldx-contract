@@ -21,7 +21,7 @@
         "function": "quoteHash",
         "arguments": [
           {
-            "0-validator": "address:my_address",
+            "0-subject_key": "nested:str:my_validator",
             "1-covered_event": "u8:0",
             "2-duration_epochs": "u64:60",
             "3-payout": "biguint:5000",
@@ -35,7 +35,7 @@
       "expect": {
         "status": "0",
         "out": [
-          "0xc7944c0a41e5d9185a2095a68406c39fa68614ddadb709e5c8f2daab69a723a3"
+          "0xd3a41264c43325a2f9cd5676316c75018490788d1d51027711633088926bf038"
         ]
       }
     }

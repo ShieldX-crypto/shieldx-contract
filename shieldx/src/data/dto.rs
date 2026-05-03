@@ -7,7 +7,7 @@ use crate::data;
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug)]
 pub struct QuotePayload<M: ManagedTypeApi> {
-    pub validator: ManagedAddress<M>,
+    pub subject_key: ManagedBuffer<M>,
     pub covered_event: data::CoveredEvent,
     pub duration_epochs: u64,
     pub payout: BigUint<M>,
@@ -23,6 +23,7 @@ pub struct ProtocolConfig<M: ManagedTypeApi> {
     pub oracle_pubkey: ManagedByteArray<M, ORACLE_PUBKEY_SIZE_BYTES>,
     pub protocol_fee_bps: u32,
     pub max_payout_bps_of_pool: u32,
+    pub max_locked_per_subject_bps: u32,
 }
 
 #[type_abi]

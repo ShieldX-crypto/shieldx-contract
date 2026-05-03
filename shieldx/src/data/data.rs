@@ -26,7 +26,7 @@ pub enum PolicyStatus {
 pub struct Policy<M: ManagedTypeApi> {
     pub id: u64,
     pub owner_address: ManagedAddress<M>,
-    pub validator: ManagedAddress<M>,
+    pub subject_key: ManagedBuffer<M>,
     pub covered_event: CoveredEvent,
     pub premium: BigUint<M>,
     pub payout: BigUint<M>,
@@ -40,8 +40,8 @@ pub struct Policy<M: ManagedTypeApi> {
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq, Eq, Debug)]
-pub struct ValidatorEvent<M: ManagedTypeApi> {
+pub struct OracleEvent<M: ManagedTypeApi> {
     pub event: CoveredEvent,
-    pub validator: ManagedAddress<M>,
+    pub subject_key: ManagedBuffer<M>,
     pub epoch: u64,
 }

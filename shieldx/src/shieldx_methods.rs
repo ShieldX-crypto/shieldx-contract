@@ -1,9 +1,8 @@
 klever_sc::imports!();
 
 use crate::{
-    constants::ERR_DOES_NOT_EXIST,
-    constants::ORACLE_SIGNATURE_SIZE_BYTES,
-    data::{CoveredEvent, Policy, PolicyStatus, ValidatorEvent},
+    constants::{ERR_DOES_NOT_EXIST, ORACLE_SIGNATURE_SIZE_BYTES},
+    data::{OracleEvent, Policy, PolicyStatus},
     dto::QuotePayload,
     events, storage, utils,
 };
@@ -48,10 +47,6 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
         let payment = self.call_value().klv_value().clone_value();
         require!(payment.eq(&payload.premium), "Premium mismatch");
         require!(
-            payload.covered_event == CoveredEvent::Jailed,
-            "Unsupported event"
-        );
-        require!(
             payload.expiry >= self.blockchain().get_block_timestamp(),
             "Quote expired"
         );
@@ -76,11 +71,22 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
         let max_allowed = self.bps_value(&pool, &config.max_payout_bps_of_pool);
         require!(payload.payout <= max_allowed, "Payout exceeds pool limit");
 
+        let locked_by_subject = self
+            .locked_liquidity_by_subject(&payload.covered_event, &payload.subject_key)
+            .get();
+        let max_allowed_by_subject = self.bps_value(&pool, &config.max_locked_per_subject_bps);
+        require!(
+            locked_by_subject + payload.payout.clone() <= max_allowed_by_subject,
+            "Payout exceeds pool limit by subject"
+        );
+
         let protocol_fee = self.bps_value(&payload.premium, &config.protocol_fee_bps);
         let pool_part = payload.premium.clone() - protocol_fee.clone();
         self.pool_balance().update(|v| *v += pool_part);
         self.protocol_balance().update(|v| *v += protocol_fee);
         self.locked_liquidity().update(|v| *v += &payload.payout);
+        self.locked_liquidity_by_subject(&payload.covered_event, &payload.subject_key)
+            .update(|v| *v += &payload.payout);
 
         let policy_id = self.next_policy_id().get();
         self.next_policy_id().set(policy_id + 1);
@@ -91,7 +97,7 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
         let policy = Policy {
             id: policy_id,
             owner_address: self.blockchain().get_caller(),
-            validator: payload.validator.clone(),
+            subject_key: payload.subject_key.clone(),
             covered_event: payload.covered_event.clone(),
             premium: payload.premium.clone(),
             payout: payload.payout.clone(),
@@ -103,20 +109,21 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
         };
 
         self.policies(policy_id).set(policy.clone());
-        self.policies_by_validator(&policy.validator)
+        self.policies_by_subject(&policy.covered_event, &policy.subject_key)
             .push(&policy_id);
         self.policies_by_expiry_epoch(end_epoch).push(&policy_id);
         self.used_nonces().insert(policy.nonce);
 
         self.emit_policy_created(
             policy.owner_address.clone(),
-            policy.validator.clone(),
+            policy.covered_event.clone(),
+            policy.subject_key.clone(),
             &policy,
         );
     }
 
-    #[endpoint(registerValidatorEvent)]
-    fn register_validator_event(&self, event: &ValidatorEvent<Self::Api>) {
+    #[endpoint(registerOracleEvent)]
+    fn register_oracle_event(&self, event: &OracleEvent<Self::Api>) {
         let caller = self.blockchain().get_caller();
         require!(
             self.oracle_whitelist().contains(&caller),
@@ -124,16 +131,18 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
         );
 
         require!(
-            event.event == CoveredEvent::Jailed,
-            "Unsupported event type"
-        );
-        require!(
             event.epoch <= self.blockchain().get_block_epoch(),
-            "Event epoch is invalid. Should not be in the future"
+            "Event epoch is invalid"
         );
 
-        self.validator_events(&event.validator).insert(event.epoch);
-        self.emit_validator_event_registered(caller, event.validator.clone(), event);
+        self.subject_events(&event.event, &event.subject_key)
+            .insert(event.epoch);
+        self.emit_oracle_event_registered(
+            caller,
+            event.event.clone(),
+            event.subject_key.clone(),
+            &event,
+        );
     }
 
     #[endpoint(batchClaim)]
@@ -161,7 +170,7 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
                 "Trigger outside covergae window"
             );
             require!(
-                self.validator_events(&policy.validator)
+                self.subject_events(&policy.covered_event, &policy.subject_key)
                     .contains(&trigger_epoch),
                 "Event for trigger event is not registered"
             );
@@ -174,7 +183,9 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
 
             self.emit_payout_granted(
                 policy.owner_address,
-                policy.validator,
+                policy.id,
+                policy.covered_event,
+                policy.subject_key,
                 trigger_epoch,
                 policy.payout,
             );
@@ -201,9 +212,22 @@ pub trait ShieldxMethods: storage::Storage + utils::ShieldXUtils + events::Shiel
             );
             policy.status = PolicyStatus::Expired;
             self.policies(policy_id).set(policy.clone());
-            let payout = policy.payout.clone();
+            let mut payout = policy.payout.clone();
             self.locked_liquidity().update(|v| *v -= payout);
-            self.emit_policy_expired(policy.validator.clone(), epoch, &policy);
+            payout = policy.payout.clone();
+            self.locked_liquidity_by_subject(
+                &policy.covered_event.clone(),
+                &policy.subject_key.clone(),
+            )
+            .update(|v| *v -= payout);
+            self.emit_policy_expired(
+                policy.owner_address.clone(),
+                policy.id.clone(),
+                policy.covered_event.clone(),
+                policy.subject_key.clone(),
+                epoch,
+                &policy,
+            );
         }
     }
 }

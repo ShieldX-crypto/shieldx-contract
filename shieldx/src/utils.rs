@@ -29,7 +29,7 @@ pub trait ShieldXUtils {
     ) -> ManagedByteArray<Self::Api, SHA_256_HASH_LENTH_BYTES> {
         let mut buf = ManagedBuffer::new();
 
-        buf.append(quote.validator.as_managed_buffer());
+        buf.append(&quote.subject_key);
         buf.append_bytes(&(quote.covered_event.clone() as u64).to_be_bytes());
         buf.append_bytes(&quote.duration_epochs.to_be_bytes());
         buf.append(&quote.payout.to_bytes_be_buffer());
