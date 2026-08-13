@@ -1,0 +1,322 @@
+{
+    "name": "ShieldX main flow",
+    "comment": "Deploy, deposit liquidity, verify quote hash, buy policies, register event, auto claim, expire and withdraw liquidity.",
+    "steps": [
+        {
+            "step": "setState",
+            "comment": "Initial accounts and block state",
+            "accounts": {
+                "address:owner": {
+                    "nonce": "1",
+                    "balance": "1000000",
+                    "storage": {},
+                    "code": ""
+                },
+                "address:user": {
+                    "nonce": "0",
+                    "balance": "1000000",
+                    "storage": {},
+                    "code": ""
+                },
+                "address:liquidity_provider": {
+                    "nonce": "0",
+                    "balance": "1000000",
+                    "storage": {},
+                    "code": ""
+                },
+                "address:oracle": {
+                    "nonce": "0",
+                    "balance": "1000000",
+                    "storage": {},
+                    "code": ""
+                }
+            },
+            "newAddresses": [
+                {
+                    "creatorAddress": "address:owner",
+                    "creatorNonce": "2",
+                    "newAddress": "sc:shieldx"
+                }
+            ],
+            "currentBlockInfo": {
+                "blockTimestamp": "1000",
+                "blockNonce": "1",
+                "blockRound": "1",
+                "blockEpoch": "60"
+            }
+        },
+        {
+            "step": "scDeploy",
+            "id": "deploy",
+            "tx": {
+                "from": "address:owner",
+                "contractCode": "kleversc:../output/shieldx.kleversc.json",
+                "arguments": [
+                    "0x2a46395cd1132a820c72844f1432de5f9229245768c878fb95c820e176b072fb",
+                    "u32:1000",
+                    "u32:5000",
+                    "u32:10000"
+
+                ],
+                "gasLimit": "80,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "",
+                "logs": [],
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "add_oracle",
+            "comment": "Whitelist oracle address",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:shieldx",
+                "value": "0",
+                "function": "addOracleAddress",
+                "arguments": [
+                    "address:oracle"
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "deposit_liquidity",
+            "comment": "Seed the pool",
+            "tx": {
+                "from": "address:liquidity_provider",
+                "to": "sc:shieldx",
+                "klvValue": "100000",
+                "function": "depositLiquidity",
+                "arguments": [],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "quote_hash_1",
+            "comment": "Check quote hash matches the backend/oracle serialization",
+            "tx": {
+                "to": "sc:shieldx",
+                "function": "quoteHash",
+                "arguments": [
+                    {
+                        "0-validator": "nested:str:my_validator",
+                        "1-covered_event": "u8:0",
+                        "2-duration_epochs": "u64:60",
+                        "3-payout": "biguint:5000",
+                        "4-premium": "biguint:120",
+                        "5-expiry": "u64:1000",
+                        "6-nonce": "u64:7",
+                        "7-risk_model_version": "nested:str:0.0.1"
+                    }
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "0xd3a41264c43325a2f9cd5676316c75018490788d1d51027711633088926bf038"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "buy_policy_1",
+            "comment": "Buy the first policy that will later be claimable",
+            "tx": {
+                "from": "address:user",
+                "to": "sc:shieldx",
+                "klvValue": "120",
+                "function": "buyPolicy",
+                "arguments": [
+                    {
+                        "0-subject_key": "nested:str:my_validator",
+                        "1-covered_event": "u8:0",
+                        "2-duration_epochs": "u64:60",
+                        "3-payout": "biguint:5000",
+                        "4-premium": "biguint:120",
+                        "5-expiry": "u64:1000",
+                        "6-nonce": "u64:7",
+                        "7-risk_model_version": "nested:str:0.0.1"
+                    },
+                    "0x3b064e4cbd81958a0462465bb1c0ed639b65b52ad28ceceddd6191acb04f287ae67093a869b6fe2b346651ee08ce8d5680dcd8cd887155b69d4911844f190604"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "buy_policy_2",
+            "comment": "Buy the second policy that will later expire without a claim",
+            "tx": {
+                "from": "address:user",
+                "to": "sc:shieldx",
+                "klvValue": "60",
+                "function": "buyPolicy",
+                "arguments": [
+                    {
+                        "0-validator": "nested:str:my_validator",
+                        "1-covered_event": "u8:0",
+                        "2-duration_epochs": "u64:10",
+                        "3-payout": "biguint:2000",
+                        "4-premium": "biguint:60",
+                        "5-expiry": "u64:1000",
+                        "6-nonce": "u64:8",
+                        "7-risk_model_version": "nested:str:0.0.1"
+                    },
+                    "0x8994dd9025a15cbb348d8915888165f37a46e89a03caf453531394495c7bf219eb4064cdb05a16dfa0b5a3afdf6f63ba17e1f487f90cb0684efe3b2dc1983007"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "Move chain forward to the event epoch",
+            "currentBlockInfo": {
+                "blockTimestamp": "1100",
+                "blockNonce": "2",
+                "blockRound": "2",
+                "blockEpoch": "80"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "register_oracle_event",
+            "comment": "Oracle reports validator jailed at epoch 80",
+            "tx": {
+                "from": "address:oracle",
+                "to": "sc:shieldx",
+                "value": "0",
+                "function": "registerOracleEvent",
+                "arguments": [
+                    {
+                        "0-event": "u8:0",
+                        "1-validator": "nested:str:my_validator",
+                        "2-epoch": "u64:80"
+                    }
+                ],
+                "gasLimit": "20,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "batch_claim_policy_1",
+            "comment": "Auto-claim the first policy in one batch",
+            "tx": {
+                "from": "address:oracle",
+                "to": "sc:shieldx",
+                "value": "0",
+                "function": "batchClaim",
+                "arguments": [
+                    [
+                        "u64:1"
+                    ],
+                    "u64:80"
+                ],
+                "gasLimit": "30,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "Move chain forward so policy #2 is expired",
+            "currentBlockInfo": {
+                "blockTimestamp": "1200",
+                "blockNonce": "3",
+                "blockRound": "3",
+                "blockEpoch": "90"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "expire_policy_2",
+            "comment": "Expire the second policy by its expiry bucket epoch (10 epochs after start)",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:shieldx",
+                "value": "0",
+                "function": "expirePolicies",
+                "arguments": [
+                    "u64:70"
+                ],
+                "gasLimit": "20,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "withdraw_liquidity",
+            "comment": "Withdraw part of the available liquidity after claim and expiry",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:shieldx",
+                "value": "0",
+                "function": "withdrawLiquidity",
+                "arguments": [
+                    "address:owner",
+                    "u64:10000"
+                ],
+                "gasLimit": "20,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0"
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Final balances after all operations",
+            "accounts": {
+                "address:owner": {
+                    "balance": "1010000",
+                    "nonce": "*"
+                },
+                "address:user": {
+                    "balance": "1004820",
+                    "nonce": "*"
+                },
+                "address:liquidity_provider": {
+                    "balance": "900000",
+                    "nonce": "*"
+                },
+                "sc:shieldx": {
+                    "balance": "85180",
+                    "nonce": "*",
+                    "code": "*"
+                },
+                "+": ""
+            }
+        }
+    ]
+}

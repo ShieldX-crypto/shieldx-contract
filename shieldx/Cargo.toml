@@ -1,0 +1,21 @@
+[package]
+name = "shieldx"
+version = "0.0.1"
+authors = ["Alexey"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/shieldx.rs"
+
+[dependencies.klever-sc]
+version = "0.45.0"
+
+[dev-dependencies.klever-sc-scenario]
+version = "0.45.0"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+]
